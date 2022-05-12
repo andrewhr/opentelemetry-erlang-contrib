@@ -8,6 +8,13 @@ defmodule OpentelemetryOban.MixProject do
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      xref: [
+        exclude: [
+          Oban.Pro.Plugins.DynamicLifeline,
+          Oban.Pro.Plugins.DynamicQueues,
+          Oban.Pro.Queue.SmartEngine
+        ]
+      ],
       aliases: aliases(),
       docs: [
         main: "OpentelemetryOban",
@@ -39,7 +46,7 @@ defmodule OpentelemetryOban.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:oban, "~> 2.0"},
+      {:oban, "~> 2.13"},
       {:opentelemetry_api, "~> 1.0"},
       {:opentelemetry_telemetry, "~> 1.0.0"},
       {:opentelemetry, "~> 1.0", only: [:test]},
