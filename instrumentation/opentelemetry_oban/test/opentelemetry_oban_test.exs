@@ -3,6 +3,8 @@ defmodule OpentelemetryObanTest do
 
   doctest OpentelemetryOban
 
+  alias OpentelemetryOban.TestRepo
+
   require OpenTelemetry.Tracer
   require OpenTelemetry.Span
   require Record
@@ -16,16 +18,9 @@ defmodule OpentelemetryObanTest do
   end
 
   setup do
-    :application.stop(:opentelemetry)
-    :application.set_env(:opentelemetry, :tracer, :otel_tracer_default)
+    :otel_simple_processor.set_exporter(:otel_exporter_pid, self())
 
-    :application.set_env(:opentelemetry, :processors, [
-      {:otel_batch_processor, %{scheduled_delay_ms: 1, exporter: {:otel_exporter_pid, self()}}}
-    ])
-
-    :application.start(:opentelemetry)
-
-    TestHelpers.remove_oban_handlers()
+    start_supervised!({Oban, repo: TestRepo})
     OpentelemetryOban.setup()
 
     :ok
@@ -161,7 +156,7 @@ defmodule OpentelemetryObanTest do
 
   test "records spans for Oban jobs that stop with {:error, :something}" do
     OpentelemetryOban.insert(TestJobThatReturnsError.new(%{}))
-    assert %{success: 0, failure: 1} = Oban.drain_queue(queue: :events)
+    assert %{success: 0, discard: 1} = Oban.drain_queue(queue: :events)
 
     expected_status = OpenTelemetry.status(:error, "")
 
@@ -202,7 +197,7 @@ defmodule OpentelemetryObanTest do
   test "records spans for each retry" do
     OpentelemetryOban.insert(TestJobThatReturnsError.new(%{}, max_attempts: 2))
 
-    assert %{success: 0, failure: 2} =
+    assert %{success: 0, failure: 1, discard: 1} =
              Oban.drain_queue(queue: :events, with_scheduled: true, with_recursion: true)
 
     expected_status = OpenTelemetry.status(:error, "")
@@ -239,7 +234,7 @@ defmodule OpentelemetryObanTest do
 
   test "records spans for Oban jobs that stop with an exception" do
     OpentelemetryOban.insert(TestJobThatThrowsException.new(%{}))
-    assert %{success: 0, failure: 1} = Oban.drain_queue(queue: :events)
+    assert %{success: 0, discard: 1} = Oban.drain_queue(queue: :events)
 
     expected_status = OpenTelemetry.status(:error, "")
 

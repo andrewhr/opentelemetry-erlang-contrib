@@ -8,6 +8,7 @@ defmodule OpentelemetryOban.MixProject do
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      aliases: aliases(),
       docs: [
         main: "OpentelemetryOban",
         extras: ["README.md"]
@@ -50,4 +51,10 @@ defmodule OpentelemetryOban.MixProject do
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
+
+  defp aliases() do
+    [
+      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"]
+    ]
+  end
 end

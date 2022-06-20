@@ -11,6 +11,8 @@ defmodule DataCase do
 
   use ExUnit.CaseTemplate
 
+  alias OpentelemetryOban.TestRepo
+
   using do
     quote do
       use Oban.Testing, repo: TestRepo
