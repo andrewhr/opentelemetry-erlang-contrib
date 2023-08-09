@@ -1,0 +1,10 @@
+version: "3.7"
+
+services:
+  redis:
+    image: mongo:4.4
+    ports:
+      - 6379:6379
+    ports:
+      - "27017:27017"
+    command: ["--replSet", "rs0"]
